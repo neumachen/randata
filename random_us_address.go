@@ -26,7 +26,7 @@ type Address struct {
 var USAddresses = make([]Address, 0)
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func init() {
