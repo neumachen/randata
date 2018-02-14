@@ -1,6 +1,13 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [],
+	"package": [
+		{
+			"checksumSHA1": "Sgl/NQjGx+itGVhkOBKBVeSXHtw=",
+			"path": "github.com/magicalbanana/tg",
+			"revision": "7fea28fe2dbccb95aca8ef7484e1ab6fbaa8b238",
+			"revisionTime": "2018-02-02T03:35:42Z"
+		}
+	],
 	"rootPath": "github.com/magicalbanana/testdata"
 }
