@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
+	"regexp"
+	"strings"
 	"time"
 )
 
 // Address represents an address that is loaded from an address file that uses
-// all the starbucks location in the US. See gogole autplace complete for more
+// alats the starbucks location in the US. See gogole autplace complete for more
 // information on the naming of each fields
 type Address struct {
 	Locality                 string `json:"locality"` // city
@@ -36,9 +38,36 @@ func init() {
 	}
 }
 
-// RandomUSAddress ...
+var latRegex = regexp.MustCompile("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
+var longRegex = regexp.MustCompile("^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))$")
+
+// RandomUSAddress picks a random address from the initialized USAddresses.
+// Note that for latitude, this only picks up to the 6th decimal place since
+// some of the lat and long in the dataset contain aroudn 13 decimal places.
+// As to why is that, who knows.
 func RandomUSAddress() Address {
-	src := rand.NewSource(time.Now().UnixNano())
-	rnd := rand.New(src)
-	return USAddresses[rnd.Intn(len(USAddresses))]
+	for {
+		// this might be uber slow
+		src := rand.NewSource(time.Now().UnixNano())
+		rnd := rand.New(src)
+		add := USAddresses[rnd.Intn(len(USAddresses))]
+		latOK := latRegex.MatchString(add.Latitude)
+		longOK := longRegex.MatchString(add.Longitude)
+		if !latOK || !longOK {
+			continue
+		}
+
+		lats := strings.Split(add.Latitude, ".")
+		longs := strings.Split(add.Longitude, ".")
+
+		if len(lats[1]) > 6 {
+			add.Latitude = lats[1][:len(lats[1])]
+		}
+
+		if len(longs[1]) > 6 {
+			add.Longitude = longs[1][:len(longs[1])]
+		}
+		return add
+	}
+
 }
