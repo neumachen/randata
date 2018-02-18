@@ -1,4 +1,4 @@
-package testdata
+package randata
 
 import (
 	"strings"
@@ -21,15 +21,25 @@ func TestRandomUSAddress_Success(t *testing.T) {
 	assert.NotEmpty(t, address.Longitude)
 
 	lat := strings.Split(address.Latitude, ".")
+	long := strings.Split(address.Longitude, ".")
+
 	ok := assert.True(t, len(lat) == 2)
 	if !ok {
 		spew.Dump(address.Latitude)
 	}
 	assert.True(t, len(lat[1]) < 7)
-	long := strings.Split(address.Longitude, ".")
 	ok = assert.True(t, len(long) == 2)
 	if !ok {
 		spew.Dump(address.Longitude)
+	}
+
+	ok = assert.True(t, len(lat[1]) == 6)
+	if !ok {
+		spew.Dump(lat[1])
+	}
+	ok = assert.True(t, len(long[1]) == 6)
+	if !ok {
+		spew.Dump(long[1])
 	}
 	assert.True(t, len(long[1]) < 7)
 }

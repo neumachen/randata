@@ -3,7 +3,7 @@
 // data/us_addresses.json
 // DO NOT EDIT!
 
-package testdata
+package randata
 
 import (
 	"bytes"

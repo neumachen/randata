@@ -1,4 +1,4 @@
-package testdata
+package randata
 
 import (
 	"encoding/json"
@@ -38,8 +38,8 @@ func init() {
 	}
 }
 
-var latRegex = regexp.MustCompile("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
-var longRegex = regexp.MustCompile("^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))$")
+var latRegex = regexp.MustCompile("^(\\+|-)?(?:90(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{6,6})?))$")
+var longRegex = regexp.MustCompile("^(\\+|-)?(?:180(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{6,6})?))$")
 
 // RandomUSAddress picks a random address from the initialized USAddresses.
 // Note that for latitude, this only picks up to the 6th decimal place since
