@@ -26,21 +26,6 @@ type Address struct {
 var USAddresses = make([]Address, 0)
 
 func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
-}
-
-func init() {
-
-	// NOTE: how to get the current directory of the file
-	// _, filename, _, ok := runtime.Caller(1)
-	// if !ok {
-	// 	panic("error error error error")
-	// }
-	// file := path.Join(path.Dir(filename), "../../testhelper/testfixtures/data/testfixtures_addresses.json")
-	// data, err := ioutil.ReadFile(file)
-	// if err != nil {
-	// 	panic(err)
-	// }
 	data, err := Asset("data/us_addresses.json")
 	if err != nil {
 		log.Fatalf("fatal error loading testdata, error: %s", err.Error())
@@ -51,7 +36,9 @@ func init() {
 	}
 }
 
-// RandomAddress ...
+// RandomUSAddress ...
 func RandomUSAddress() Address {
-	return USAddresses[rand.Intn(len(USAddresses))]
+	src := rand.NewSource(time.Now().UnixNano())
+	rnd := rand.New(src)
+	return USAddresses[rnd.Intn(len(USAddresses))]
 }
