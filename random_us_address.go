@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,6 +23,16 @@ type Address struct {
 	Route                    string `json:"route"`                       // street name
 	PostalCode               string `json:"postal_code"`                 // zip code
 	AdministrativeAreaLevel1 string `json:"administrative_area_level_1"` // state
+}
+
+// LatitudeFloat64 ...
+func (a *Address) LatitudeFloat64() (float64, error) {
+	return strconv.ParseFloat(a.Latitude, 64)
+}
+
+// LongitudeFloat64 ...
+func (a *Address) LongitudeFloat64() (float64, error) {
+	return strconv.ParseFloat(a.Longitude, 64)
 }
 
 // USAddresses ...
