@@ -64,6 +64,9 @@ func RandomUSAddress() Address {
 		add := USAddresses[rnd.Intn(len(USAddresses))]
 		latOK := latRegex.MatchString(add.Latitude)
 		longOK := longRegex.MatchString(add.Longitude)
+		if add.PostalCode == "" {
+			continue
+		}
 		if !latOK || !longOK {
 			continue
 		}
