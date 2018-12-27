@@ -6,7 +6,7 @@ import (
 )
 
 // RandomDate ...
-func RandomDate(minYear, maxyear int) time.Time {
+func RandomDate(minYear, maxYear int) time.Time {
 	min := time.Date(minYear, 1, 0, 0, 0, 0, 0, time.UTC).Unix()
 	max := time.Date(maxYear, 1, 0, 0, 0, 0, 0, time.UTC).Unix()
 	delta := max - min
