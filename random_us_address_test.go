@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,21 +24,21 @@ func TestRandomUSAddress_Success(t *testing.T) {
 
 	ok := assert.True(t, len(lat) == 2)
 	if !ok {
-		spew.Dump(address.Latitude)
+		assert.FailNow("latitude:", address.Latitude)
 	}
 	assert.True(t, len(lat[1]) < 7)
 	ok = assert.True(t, len(long) == 2)
 	if !ok {
-		spew.Dump(address.Longitude)
+		assert.FailNow("longitude:", address.Longitude)
 	}
 
 	ok = assert.True(t, len(lat[1]) == 6)
 	if !ok {
-		spew.Dump(lat[1])
+		assert.FailNow("latitude:", lat[1])
 	}
 	ok = assert.True(t, len(long[1]) == 6)
 	if !ok {
-		spew.Dump(long[1])
+		assert.FailNow("Longitude:", long[1])
 	}
 	assert.True(t, len(long[1]) < 7)
 }
