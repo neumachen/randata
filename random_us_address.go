@@ -85,3 +85,37 @@ func RandomUSAddress() Address {
 	}
 
 }
+
+// RandomUSStateAddress ...
+func RandomUSStateAddress(state string, routines int) *Address {
+	if routines == 0 {
+		routines = 100
+	}
+	address := make(chan *Address, 1)
+	stop := make(chan struct{})
+
+	fn := func(s string, stop chan struct{}) {
+	loop:
+		for {
+			select {
+			case <-stop:
+				break loop
+			default:
+				a := RandomUSAddress()
+				if a.AdministrativeAreaLevel1 == s {
+					address <- &a
+					close(stop)
+					break loop
+				}
+
+			}
+		}
+		return
+	}
+
+	for i := 0; i < routines; i++ {
+		go fn(state, stop)
+	}
+
+	return <-address
+}

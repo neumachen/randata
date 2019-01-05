@@ -29,3 +29,10 @@ func TestRandomUSAddress_Success(t *testing.T) {
 	assert.True(t, len(long[1]) == 6)
 	assert.True(t, len(long[1]) < 7)
 }
+
+func TestRandomUSStateAddress_Success(t *testing.T) {
+	state := "IL"
+	address := RandomUSStateAddress(state, 1000)
+	assert.NotNil(t, address)
+	assert.Equal(t, state, address.AdministrativeAreaLevel1)
+}
