@@ -98,6 +98,8 @@ func RandomUSStateAddress(state string, routines int) *Address {
 	loop:
 		for {
 			select {
+			case <-stop:
+				break loop
 			default:
 				a := RandomUSAddress()
 				if a.AdministrativeAreaLevel1 == s {
@@ -105,8 +107,6 @@ func RandomUSStateAddress(state string, routines int) *Address {
 					close(stop)
 					break loop
 				}
-			case <-stop:
-				break loop
 			}
 		}
 		return
