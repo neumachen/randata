@@ -94,12 +94,6 @@ func RandomUSStateAddress(state string, routines int) *Address {
 	address := make(chan *Address)
 	stop := make(chan struct{})
 
-	go func() {
-		<-stop
-		close(address)
-
-	}()
-
 	fn := func(s string, stop chan struct{}) {
 	loop:
 		for {
