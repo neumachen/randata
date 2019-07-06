@@ -32,7 +32,7 @@ func TestRandomUSAddress_Success(t *testing.T) {
 
 func TestRandomUSStateAddress_Success(t *testing.T) {
 	state := "IL"
-	address := RandomUSStateAddress(state, 1000)
+	address := RandomUSStateAddress(state, 10)
 	assert.NotNil(t, address)
 	assert.Equal(t, state, address.AdministrativeAreaLevel1)
 }

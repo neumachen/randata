@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -89,32 +90,43 @@ func RandomUSAddress() Address {
 // RandomUSStateAddress ...
 func RandomUSStateAddress(state string, routines int) *Address {
 	if routines == 0 {
-		routines = 100
+		routines = 10
 	}
-	address := make(chan *Address)
+
+	addresses := make(chan *Address, 0)
 	stop := make(chan struct{})
 
-	fn := func(s string, stop chan struct{}) {
-	loop:
-		for {
-			select {
-			case <-stop:
-				break loop
-			default:
-				a := RandomUSAddress()
-				if a.AdministrativeAreaLevel1 == s {
-					address <- &a
-					close(stop)
-					break loop
-				}
-			}
-		}
-		return
-	}
+	var wg sync.WaitGroup
 
 	for i := 0; i < routines; i++ {
-		go fn(state, stop)
+		wg.Add(1)
+		go func(s string) {
+			defer func() {
+				wg.Done()
+			}()
+		loop:
+			for {
+				select {
+				case <-stop:
+					break loop
+				default:
+					a := RandomUSAddress()
+					if a.AdministrativeAreaLevel1 == s {
+						addresses <- &a
+						break loop
+					}
+				}
+
+			}
+			return
+		}(state)
 	}
 
-	return <-address
+	go func() {
+		wg.Wait()
+		close(addresses)
+		close(stop)
+	}()
+
+	return <-addresses
 }
