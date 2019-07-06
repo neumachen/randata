@@ -3,6 +3,7 @@ package randata
 import (
 	"math/rand"
 	"sync"
+	"time"
 )
 
 // Boolgen is an interface that implements the generation of a random bool
@@ -30,4 +31,9 @@ func (b *boolgen) RandomBool() bool {
 	b.remaining--
 
 	return result
+}
+
+// NewRandomBool ...
+func NewRandomBool() *boolgen {
+	return &boolgen{src: rand.NewSource(time.Now().UnixNano())}
 }
