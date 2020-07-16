@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"sync"
 	"time"
 )
+
+var sSNRegexString = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
+var sSNRegex = regexp.MustCompile(sSNRegexString)
 
 // RandomSSN will try to generate a valid random SSN by generating up until
 // the given retries or until it generates a valid SSN whichever comes first.
@@ -26,6 +30,7 @@ func RandomSSN(formatted bool, routines int) string {
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	wg := sync.WaitGroup{}
 	for i := 0; i < routines; i++ {
 		wg.Add(1)
@@ -83,5 +88,6 @@ func validateSSN(ssn string) (bool, error) {
 	if ssnInt < 987654329 && ssnInt > 987654320 {
 		return false, errors.New("SSN can not be in the range of 987654320-987654329")
 	}
-	return true, nil
+
+	return sSNRegex.Match([]byte(ssn)), nil
 }
