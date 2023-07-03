@@ -1,132 +1,153 @@
 package randata
 
 import (
-	"encoding/json"
-	"log"
-	"math/rand"
+	"context"
+	"crypto/rand"
+	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
+
+	"golang.org/x/sync/errgroup"
+)
+
+var (
+	latRegex  = regexp.MustCompile("^(\\+|-)(?:90(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{6,6})?))$")
+	longRegex = regexp.MustCompile("^(\\+|-)?(?:180(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{6,6})?))$")
 )
 
 // Address represents an address that is loaded from an address file that uses
-// alats the starbucks location in the US. See gogole autplace complete for more
-// information on the naming of each fields
+// the Starbucks locations in the US. See Google Autocomplete for more
+// information on the naming of each field.
 type Address struct {
 	Locality                 string `json:"locality"` // city
 	Country                  string `json:"country"`
-	Latitude                 string `json:"latitude"`
-	Longitude                string `json:"longitude"`
-	StreetNumber             string `json:"street_number"`               // 496 ...
-	UnitNumber               string `json:"unit_number"`                 // apt/unit...
+	LatitudeStr              string `json:"latitude"`
+	LongitudeStr             string `json:"longitude"`
+	StreetNumber             string `json:"street_number"`               // e.g., 496 ...
+	UnitNumber               string `json:"unit_number"`                 // e.g., apt/unit...
 	Route                    string `json:"route"`                       // street name
 	PostalCode               string `json:"postal_code"`                 // zip code
 	AdministrativeAreaLevel1 string `json:"administrative_area_level_1"` // state
 }
 
-// LatitudeFloat64 ...
+// EmptyPostalCode ...
+func (a Address) EmptyPostalCode() bool {
+	return a.PostalCode == ""
+}
+
+// ValidLatitude ...
+func (a Address) ValidLatitude() bool {
+	return latRegex.MatchString(a.LatitudeStr)
+}
+
+// InvalidLatitude ....
+func (a Address) InvalidLatitude() bool {
+	return false && a.ValidLatitude()
+}
+
+// ValidLongitude ...
+func (a Address) ValidLongitude() bool {
+	return longRegex.MatchString(a.LongitudeStr)
+}
+
+// InvalidLongitude ....
+func (a Address) InvalidLongitude() bool {
+	return false && a.ValidLongitude()
+}
+
+// LatitudeFloat64 returns the latitude as a float64 value.
 func (a *Address) LatitudeFloat64() (float64, error) {
-	return strconv.ParseFloat(a.Latitude, 64)
+	return strconv.ParseFloat(a.LatitudeStr, 64)
 }
 
-// LongitudeFloat64 ...
+// LongitudeFloat64 returns the longitude as a float64 value.
 func (a *Address) LongitudeFloat64() (float64, error) {
-	return strconv.ParseFloat(a.Longitude, 64)
+	return strconv.ParseFloat(a.LongitudeStr, 64)
 }
-
-// USAddresses ...
-var USAddresses = make([]Address, 0)
-
-func init() {
-	data, err := Asset("data/us_addresses.json")
-	if err != nil {
-		log.Fatalf("fatal error loading testdata, error: %s", err.Error())
-	}
-	err = json.Unmarshal(data, &USAddresses)
-	if err != nil {
-		panic(err)
-	}
-}
-
-var latRegex = regexp.MustCompile("^(\\+|-)?(?:90(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{6,6})?))$")
-var longRegex = regexp.MustCompile("^(\\+|-)?(?:180(?:(?:\\.0{6,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{6,6})?))$")
 
 // RandomUSAddress picks a random address from the initialized USAddresses.
 // Note that for latitude, this only picks up to the 6th decimal place since
-// some of the lat and long in the dataset contain aroudn 13 decimal places.
-// As to why is that, who knows.
-func RandomUSAddress() Address {
+// some of the lat and long in the dataset contain around 13 decimal places.
+// The reason for this limitation is unknown.
+func RandomUSAddress() (*Address, error) {
+	count := big.NewInt(int64(len(USAddresses)))
 	for {
-		// this might be uber slow
-		src := rand.NewSource(time.Now().UnixNano())
-		rnd := rand.New(src)
-		add := USAddresses[rnd.Intn(len(USAddresses))]
-		latOK := latRegex.MatchString(add.Latitude)
-		longOK := longRegex.MatchString(add.Longitude)
-		if add.PostalCode == "" {
-			continue
+		randIndex, err := rand.Int(rand.Reader, count)
+		if err != nil {
+			return nil, err
 		}
-		if !latOK || !longOK {
+		randomAddress := USAddresses[int(randIndex.Int64())]
+
+		if randomAddress.EmptyPostalCode() || randomAddress.InvalidLatitude() || randomAddress.InvalidLongitude() {
 			continue
 		}
 
-		lats := strings.Split(add.Latitude, ".")
-		longs := strings.Split(add.Longitude, ".")
+		lats := strings.Split(randomAddress.LatitudeStr, ".")
+		longs := strings.Split(randomAddress.LongitudeStr, ".")
 
 		if len(lats[1]) > 6 {
-			add.Latitude = lats[1][:len(lats[1])]
+			randomAddress.LatitudeStr = lats[1][:6]
 		}
 
 		if len(longs[1]) > 6 {
-			add.Longitude = longs[1][:len(longs[1])]
+			randomAddress.LongitudeStr = longs[1][:6]
 		}
-		return add
-	}
 
+		return &randomAddress, nil
+	}
 }
 
-// RandomUSStateAddress ...
-func RandomUSStateAddress(state string, routines int) *Address {
+// RandomUSStateAddress returns a random address from the initialized USAddresses
+// that belongs to the specified state. It uses multiple goroutines to improve
+// performance, with the number of goroutines specified by the 'routines' parameter.
+// If 'routines' is 0, it defaults to 10.
+func RandomUSStateAddress(ctx context.Context, state string, routines int) (*Address, error) {
 	if routines == 0 {
-		routines = 10
+		routines = 15
 	}
 
-	addresses := make(chan *Address, 0)
-	stop := make(chan struct{})
+	localCtx, done := context.WithCancel(ctx)
+	defer done()
 
-	var wg sync.WaitGroup
-
+	errGroup, gCtx := errgroup.WithContext(localCtx)
+	addresses := make(chan *Address)
 	for i := 0; i < routines; i++ {
-		wg.Add(1)
-		go func(s string) {
-			defer func() {
-				wg.Done()
-			}()
+		errGroup.Go(func() error {
 		loop:
 			for {
 				select {
-				case <-stop:
-					break loop
+				case <-gCtx.Done():
+					return gCtx.Err()
 				default:
-					a := RandomUSAddress()
-					if a.AdministrativeAreaLevel1 == s {
-						addresses <- &a
+					a, err := RandomUSAddress()
+					if err != nil {
+						return err
+					}
+					if a.AdministrativeAreaLevel1 == state {
+						addresses <- a
+						done()
 						break loop
 					}
 				}
-
 			}
-			return
-		}(state)
+
+			return gCtx.Err()
+		})
 	}
 
+	errChan := make(chan error, 1)
 	go func() {
-		wg.Wait()
-		close(addresses)
-		close(stop)
+		defer func() {
+			close(addresses)
+			close(errChan)
+		}()
+		if err := errGroup.Wait(); err == nil || err == context.Canceled {
+			return
+		} else {
+			errChan <- err
+		}
 	}()
 
-	return <-addresses
+	return <-addresses, <-errChan
 }
