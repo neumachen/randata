@@ -1,4 +1,4 @@
-module github.com/magicalbanana/randata
+module github.com/neumachen/randata
 
 go 1.20
 
