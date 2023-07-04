@@ -20,11 +20,11 @@ func TestRandomUSAddress_Success(t *testing.T) {
 	assert.NotEmpty(t, address.AdministrativeAreaLevel1)
 	assert.NotEmpty(t, address.PostalCode)
 	assert.NotEmpty(t, address.Country)
-	assert.NotEmpty(t, address.LatitudeStr)
-	assert.NotEmpty(t, address.LongitudeStr)
+	assert.NotEmpty(t, address.Latitude)
+	assert.NotEmpty(t, address.Longitude)
 
-	lat := strings.Split(address.LatitudeStr, ".")
-	long := strings.Split(address.LongitudeStr, ".")
+	lat := strings.Split(address.Latitude.ToString(), ".")
+	long := strings.Split(address.Longitude.ToString(), ".")
 
 	assert.True(t, len(lat) == 2)
 	assert.True(t, len(lat[1]) < 7)
