@@ -6,7 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRandomSSN(t *testing.T) {
-	ssn := RandomSSN(false, 100)
+func TestSSN(t *testing.T) {
+	t.Parallel()
+
+	ssn := SSN(false, 100)
 	require.NotEmpty(t, ssn)
 }

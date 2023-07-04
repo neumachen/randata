@@ -10,15 +10,17 @@ import (
 	"time"
 )
 
-var sSNRegexString = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
-var sSNRegex = regexp.MustCompile(sSNRegexString)
+var (
+	sSNRegexString = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
+	sSNRegex       = regexp.MustCompile(sSNRegexString)
+)
 
-// RandomSSN will try to generate a valid random SSN by generating up until
+// SSN will try to generate a valid random SSN by generating up until
 // the given retries or until it generates a valid SSN whichever comes first.
 // The retires default to 100 if no value is given.
 // If formatted it will return a string with the format XXX-XX-XXXX opposed to
 // non formatted XXXXXXXXX.
-func RandomSSN(formatted bool, routines int) string {
+func SSN(formatted bool, routines int) string {
 	validSSN := make(chan string)
 
 	if routines == 0 {

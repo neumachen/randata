@@ -8,11 +8,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// RandomUSAddress picks a random address from the initialized USAddresses.
+// USAddress picks a random address from the initialized USAddresses.
 // Note that for latitude, this only picks up to the 6th decimal place since
 // some of the lat and long in the dataset contain around 13 decimal places.
 // The reason for this limitation is unknown.
-func RandomUSAddress() (*Address, error) {
+func USAddress() (*Address, error) {
 	count := big.NewInt(int64(len(USAddresses)))
 	for {
 		randIndex, err := rand.Int(rand.Reader, count)
@@ -29,11 +29,11 @@ func RandomUSAddress() (*Address, error) {
 	}
 }
 
-// RandomUSStateAddress returns a random address from the initialized USAddresses
+// USStateAddress returns a random address from the initialized USAddresses
 // that belongs to the specified state. It uses multiple goroutines to improve
 // performance, with the number of goroutines specified by the 'routines' parameter.
 // If 'routines' is 0, it defaults to 10.
-func RandomUSStateAddress(ctx context.Context, state string, routines int) (*Address, error) {
+func USStateAddress(ctx context.Context, state string, routines int) (*Address, error) {
 	if routines == 0 {
 		routines = 15
 	}
@@ -51,7 +51,7 @@ func RandomUSStateAddress(ctx context.Context, state string, routines int) (*Add
 				case <-gCtx.Done():
 					return gCtx.Err()
 				default:
-					a, err := RandomUSAddress()
+					a, err := USAddress()
 					if err != nil {
 						return err
 					}
